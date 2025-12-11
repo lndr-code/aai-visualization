@@ -1,0 +1,1413 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adaptive Augmented Intelligence - 3D Theoriemodell</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #000000;
+            color: #00ffff;
+            overflow: hidden;
+        }
+        
+        #graph-container {
+            width: 100vw;
+            height: 100vh;
+            background: radial-gradient(ellipse at center, #0a0a1a 0%, #000000 70%);
+        }
+        
+        /* Steuerungspanel */
+        #control-panel {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 20, 40, 0.85);
+            border: 1px solid #00ffff;
+            border-radius: 10px;
+            padding: 20px;
+            min-width: 280px;
+            z-index: 1000;
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.3),
+                        inset 0 0 20px rgba(0, 255, 255, 0.05);
+        }
+        
+        #control-panel h2 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #00ffff;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border-bottom: 1px solid rgba(0, 255, 255, 0.3);
+            padding-bottom: 10px;
+        }
+        
+        .control-group {
+            margin-bottom: 15px;
+        }
+        
+        .control-group label {
+            display: block;
+            font-size: 11px;
+            color: #88cccc;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .control-group input[type="range"] {
+            width: 100%;
+            height: 4px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: rgba(0, 255, 255, 0.2);
+            border-radius: 2px;
+            outline: none;
+        }
+        
+        .control-group input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 14px;
+            height: 14px;
+            background: #00ffff;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 10px #00ffff;
+        }
+        
+        .control-group input[type="range"]::-moz-range-thumb {
+            width: 14px;
+            height: 14px;
+            background: #00ffff;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 10px #00ffff;
+            border: none;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            margin: 8px 0;
+        }
+        
+        .checkbox-group input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            margin-right: 10px;
+            accent-color: #00ffff;
+            cursor: pointer;
+        }
+        
+        .checkbox-group label {
+            font-size: 12px;
+            color: #aadddd;
+            cursor: pointer;
+            margin-bottom: 0;
+        }
+        
+        .value-display {
+            float: right;
+            font-size: 11px;
+            color: #00ffff;
+            font-family: monospace;
+        }
+        
+        /* Info Panel */
+        #info-panel {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 20, 40, 0.9);
+            border: 1px solid #00ffff;
+            border-radius: 10px;
+            padding: 20px;
+            min-width: 320px;
+            max-width: 380px;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.3),
+                        inset 0 0 20px rgba(0, 255, 255, 0.05);
+        }
+        
+        #info-panel.active {
+            display: block;
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        #info-panel h3 {
+            font-size: 16px;
+            color: #00ffff;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(0, 255, 255, 0.3);
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+        }
+        
+        #info-panel .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 8px 0;
+            font-size: 12px;
+        }
+        
+        #info-panel .info-label {
+            color: #88cccc;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        #info-panel .info-value {
+            color: #ffffff;
+            font-weight: 500;
+        }
+        
+        #info-panel .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: none;
+            border: none;
+            color: #00ffff;
+            font-size: 20px;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+        
+        #info-panel .close-btn:hover {
+            opacity: 1;
+        }
+        
+        /* Statistik-Anzeige */
+        #stats-panel {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 20, 40, 0.8);
+            border: 1px solid rgba(0, 255, 255, 0.5);
+            border-radius: 8px;
+            padding: 12px 18px;
+            font-size: 11px;
+            z-index: 1000;
+            font-family: monospace;
+        }
+        
+        #stats-panel span {
+            margin-right: 20px;
+            color: #88cccc;
+        }
+        
+        #stats-panel .stat-value {
+            color: #00ffff;
+        }
+        
+        /* Titel */
+        #title {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            text-align: right;
+            z-index: 1000;
+        }
+        
+        #title h1 {
+            font-size: 24px;
+            font-weight: 300;
+            color: #00ffff;
+            text-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+            letter-spacing: 3px;
+        }
+        
+        #title p {
+            font-size: 12px;
+            color: #88cccc;
+            margin-top: 5px;
+            letter-spacing: 1px;
+        }
+        
+        /* Legende */
+        #legend {
+            position: fixed;
+            bottom: 80px;
+            left: 20px;
+            background: rgba(0, 20, 40, 0.8);
+            border: 1px solid rgba(0, 255, 255, 0.5);
+            border-radius: 8px;
+            padding: 15px;
+            font-size: 11px;
+            z-index: 1000;
+        }
+        
+        #legend h4 {
+            color: #00ffff;
+            margin-bottom: 10px;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin: 5px 0;
+        }
+        
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+            box-shadow: 0 0 8px currentColor;
+        }
+        
+        .legend-text {
+            color: #aadddd;
+        }
+        
+        /* Loading Screen */
+        #loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s;
+        }
+        
+        #loading.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .loader {
+            width: 60px;
+            height: 60px;
+            border: 3px solid rgba(0, 255, 255, 0.1);
+            border-top-color: #00ffff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        #loading p {
+            margin-top: 20px;
+            color: #00ffff;
+            font-size: 14px;
+            letter-spacing: 2px;
+        }
+        
+        #loading .error {
+            color: #ff6b6b;
+            margin-top: 10px;
+            font-size: 12px;
+            max-width: 400px;
+            text-align: center;
+        }
+        
+        /* Fullscreen Button */
+        #fullscreen-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 20, 40, 0.8);
+            border: 1px solid #00ffff;
+            border-radius: 5px;
+            padding: 8px 15px;
+            color: #00ffff;
+            font-size: 12px;
+            cursor: pointer;
+            z-index: 1000;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        #fullscreen-btn:hover {
+            background: rgba(0, 255, 255, 0.2);
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+        }
+        
+        #fullscreen-btn.shifted {
+            top: auto;
+            bottom: 80px;
+        }
+        
+        /* Hinweis für Auto-Rotation */
+        #rotation-hint {
+            position: fixed;
+            bottom: 70px;
+            right: 20px;
+            background: rgba(0, 20, 40, 0.8);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            border-radius: 5px;
+            padding: 8px 12px;
+            font-size: 10px;
+            color: #88cccc;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        #rotation-hint.visible {
+            opacity: 1;
+        }
+
+        /* Mobile */
+        @media (max-width: 768px) {
+            #control-panel {
+                top: auto;
+                bottom: 70px;
+                left: 10px;
+                right: 10px;
+                min-width: auto;
+                max-height: 40vh;
+                overflow-y: auto;
+            }
+            
+            #legend {
+                display: none;
+            }
+            
+            #title h1 {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading">
+        <div class="loader"></div>
+        <p>INITIALIZING AAI MODEL...</p>
+        <p class="error" id="error-msg" style="display: none;"></p>
+    </div>
+    
+    <!-- Graph Container -->
+    <div id="graph-container"></div>
+    
+    <!-- Steuerungspanel -->
+    <div id="control-panel">
+        <h2>⚙ Steuerung</h2>
+        
+        <div class="control-group">
+            <label>Knoten-Größe <span class="value-display" id="size-value">1.0x</span></label>
+            <input type="range" id="node-size" min="0.3" max="3.0" step="0.1" value="1.0">
+        </div>
+        
+        <div class="control-group">
+            <label>Partikel-Geschwindigkeit <span class="value-display" id="particle-value">1.0x</span></label>
+            <input type="range" id="particle-speed" min="0.1" max="3.0" step="0.1" value="1.0">
+        </div>
+        
+        <div class="control-group">
+            <label>Physik-Stärke <span class="value-display" id="physics-value">-120</span></label>
+            <input type="range" id="physics-strength" min="-300" max="-30" step="10" value="-120">
+        </div>
+        
+        <div class="control-group">
+            <label>Link-Distanz <span class="value-display" id="link-value">60</span></label>
+            <input type="range" id="link-distance" min="20" max="150" step="5" value="60">
+        </div>
+        
+        <div class="checkbox-group">
+            <input type="checkbox" id="auto-rotate" checked>
+            <label for="auto-rotate">Auto-Rotation (Klick zum Stoppen)</label>
+        </div>
+        
+        <div class="checkbox-group">
+            <input type="checkbox" id="show-labels" checked>
+            <label for="show-labels">Labels anzeigen (PR > 0.3)</label>
+        </div>
+        
+        <div class="checkbox-group">
+            <input type="checkbox" id="show-particles" checked>
+            <label for="show-particles">Partikel anzeigen</label>
+        </div>
+        
+        <div class="checkbox-group">
+            <input type="checkbox" id="highlight-mode" checked>
+            <label for="highlight-mode">Hover-Highlighting</label>
+        </div>
+    </div>
+    
+    <!-- Info Panel -->
+    <div id="info-panel">
+        <button class="close-btn" onclick="closeInfoPanel()">×</button>
+        <h3 id="info-name">Konzeptname</h3>
+        <div class="info-row">
+            <span class="info-label">PageRank</span>
+            <span class="info-value" id="info-pagerank">0.00</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Kategorie</span>
+            <span class="info-value" id="info-category">-</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Ebene</span>
+            <span class="info-value" id="info-level">-</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Verbindungen</span>
+            <span class="info-value" id="info-connections">0</span>
+        </div>
+    </div>
+    
+    <!-- Statistik-Anzeige -->
+    <div id="stats-panel">
+        <span>Knoten: <span class="stat-value" id="node-count">98</span></span>
+        <span>Kanten: <span class="stat-value" id="link-count">177</span></span>
+    </div>
+    
+    <!-- Legende -->
+    <div id="legend">
+        <h4>Legende</h4>
+        <div class="legend-item">
+            <div class="legend-color" style="background: #00ffff; color: #00ffff;"></div>
+            <span class="legend-text">Konzepte</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background: #ff00ff; color: #ff00ff;"></div>
+            <span class="legend-text">Schlüsselfaktoren</span>
+        </div>
+        <div class="legend-item" style="margin-top: 10px;">
+            <span class="legend-text" style="font-size: 10px;">Größe = PageRank (Wichtigkeit)</span>
+        </div>
+    </div>
+    
+    <!-- Titel -->
+    <div id="title">
+        <h1>ADAPTIVE AUGMENTED INTELLIGENCE</h1>
+        <p>Theoretisches Modell der Mensch-KI-Kollaboration</p>
+    </div>
+    
+    <!-- Fullscreen Button -->
+    <button id="fullscreen-btn" onclick="toggleFullscreen()">⛶ Vollbild</button>
+    
+    <!-- Rotation Hint -->
+    <div id="rotation-hint">Klicken Sie irgendwo, um manuell zu steuern</div>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
+    <script src="https://unpkg.com/d3@7.8.5/dist/d3.min.js"></script>
+    <script src="https://unpkg.com/3d-force-graph@1.73.0/dist/3d-force-graph.min.js"></script>
+    
+    <script>
+        // ========================================
+        // GRAPH DATEN
+        // ========================================
+        const graphData = {
+            nodes: [
+                {"id":0,"name":"Künstliche Intelligenz","category":"Technologie","level":null,"pagerank":0.15},
+                {"id":1,"name":"Narrow AI","category":"Systemtyp","level":null,"pagerank":0.181875},
+                {"id":2,"name":"General AI / AGI","category":"Systemtyp","level":null,"pagerank":0.207375},
+                {"id":3,"name":"Generative AI","category":"Systemtyp","level":null,"pagerank":0.181875},
+                {"id":4,"name":"Utopische KI-Narrative","category":"Narrative","level":"Makro","pagerank":0.15},
+                {"id":5,"name":"Dystopische KI-Narrative","category":"Narrative","level":"Makro","pagerank":0.15},
+                {"id":6,"name":"Race Dynamics / Race to AI","category":"Dynamik","level":"Makro","pagerank":0.15},
+                {"id":7,"name":"Value Lock-in","category":"Risiko","level":"Makro","pagerank":0.299175},
+                {"id":8,"name":"Kontrollverlust (Makro)","category":"Risiko","level":"Makro","pagerank":0.1755},
+                {"id":9,"name":"Makroebene","category":"Ebene","level":"Makro","pagerank":0.5814191118726033},
+                {"id":10,"name":"Safety Underestimation","category":null,"level":"Makro","pagerank":0.1755},
+                {"id":11,"name":"Machtkonzentration","category":null,"level":"Makro","pagerank":0.1755},
+                {"id":12,"name":"Bedarf an Governance","category":null,"level":"Meso","pagerank":0.2735514024181854},
+                {"id":13,"name":"Mesoebene","category":"Ebene","level":"Meso","pagerank":1.16456142576764},
+                {"id":14,"name":"Alignment-Problem","category":"Problem","level":"Meso","pagerank":0.7809286487185657},
+                {"id":15,"name":"Reward Hacking","category":"Problem","level":"Meso","pagerank":0.2775},
+                {"id":16,"name":"Goodharts Gesetz","category":"Theorie","level":null,"pagerank":0.15},
+                {"id":17,"name":"Black-Box-Problematik","category":"Problem","level":"Meso","pagerank":0.15},
+                {"id":18,"name":"Verantwortungsdiffusion","category":"Problem","level":"Meso","pagerank":0.5132926532933023},
+                {"id":19,"name":"Accountability Gap","category":"Problem","level":"Meso","pagerank":0.4334066688653498},
+                {"id":20,"name":"Organisationale Governance","category":"Struktur","level":"Meso","pagerank":0.6909397317635171},
+                {"id":21,"name":"Human in the Loop","category":"Ansatz","level":"Meso","pagerank":0.15},
+                {"id":22,"name":"Organization in the Loop","category":"Ansatz","level":"Meso","pagerank":0.2477941118726032},
+                {"id":23,"name":"KI-Audits & Reviews","category":"Mechanismus","level":"Meso","pagerank":0.15},
+                {"id":24,"name":"Rollen & Zuständigkeiten","category":"Struktur","level":"Meso","pagerank":0.15},
+                {"id":25,"name":"Bias-Risiken","category":null,"level":null,"pagerank":0.21375},
+                {"id":26,"name":"Mikroebene","category":"Ebene","level":"Mikro","pagerank":0.44760114019740355},
+                {"id":27,"name":"Datenabhängigkeit","category":"Eigenschaft","level":"Mikro","pagerank":0.15},
+                {"id":28,"name":"Algorithmische Verzerrung (Bias)","category":"Problem","level":"Mikro","pagerank":0.5004764703014906},
+                {"id":29,"name":"Garbage in, garbage out","category":"Prinzip","level":"Mikro","pagerank":0.15},
+                {"id":30,"name":"Datenqualität","category":"Faktor","level":"Mikro","pagerank":0.15},
+                {"id":31,"name":"Automation Bias","category":"Fehler","level":"Mikro","pagerank":0.19695754704473922},
+                {"id":32,"name":"AI Literacy","category":"Faktor_individuell","level":"Mikro","pagerank":0.3015404879275152},
+                {"id":33,"name":"Vertrauenskalibrierung","category":"Faktor_individuell","level":"Mikro","pagerank":0.17563094147383887},
+                {"id":34,"name":"Technikakzeptanz","category":"Faktor_individuell","level":"Mikro","pagerank":0.8850885949409834},
+                {"id":35,"name":"Selbstwirksamkeit","category":"Faktor_individuell","level":"Mikro","pagerank":0.2484154879275151},
+                {"id":36,"name":"Empowerment","category":"Faktor_individuell","level":"Mikro/Meso","pagerank":0.15},
+                {"id":37,"name":"Technostress","category":"Risiko_individuell","level":"Mikro","pagerank":0.8894595066278026},
+                {"id":38,"name":"AI-induced Job Insecurity","category":"Risiko_individuell","level":"Mikro","pagerank":0.15},
+                {"id":39,"name":"AI Divide","category":"Problem","level":"Mikro/Makro","pagerank":0.15},
+                {"id":40,"name":"Adaptive Nutzungstendenz","category":"Metafaktor_individuell","level":"Mikro","pagerank":0.592756945896554},
+                {"id":41,"name":"Fairness","category":"Outcome","level":null,"pagerank":0.3201011401974035},
+                {"id":42,"name":"Entscheidungsqualität","category":null,"level":null,"pagerank":0.1926532111418008},
+                {"id":43,"name":"Organisationale Rahmenwerke","category":null,"level":"Meso","pagerank":0.15},
+                {"id":44,"name":"Techno-Overload","category":null,"level":null,"pagerank":0.15},
+                {"id":45,"name":"Techno-Complexity","category":null,"level":null,"pagerank":0.15},
+                {"id":46,"name":"Techno-Insecurity","category":null,"level":null,"pagerank":0.181875},
+                {"id":47,"name":"Techno-Uncertainty","category":null,"level":null,"pagerank":0.15},
+                {"id":48,"name":"Techno-Invasion","category":null,"level":null,"pagerank":0.15},
+                {"id":49,"name":"Human-Centered AI","category":"Rahmenmodell","level":null,"pagerank":0.5284651821160983},
+                {"id":50,"name":"Augmented Intelligence","category":"Ansatz","level":null,"pagerank":0.38640986850040554},
+                {"id":51,"name":"Assisted Intelligence","category":"Ansatz","level":null,"pagerank":0.15},
+                {"id":52,"name":"Automation / Autonome Systeme","category":"Ansatz","level":null,"pagerank":0.15},
+                {"id":53,"name":"Adaptive Augmented Intelligence","category":"Strategischer Ansatz","level":null,"pagerank":1.15052482918079},
+                {"id":54,"name":"Levels of Automation (LoA)","category":"Theorie/Modell","level":null,"pagerank":0.3244210702434948},
+                {"id":55,"name":"Task-Technology-Fit (TTF)","category":"Theorie","level":null,"pagerank":0.15},
+                {"id":56,"name":"Technology Acceptance Model (TAM)","category":"Theorie","level":null,"pagerank":0.3004639817384368},
+                {"id":57,"name":"UTAUT","category":"Theorie","level":null,"pagerank":0.3004639817384368},
+                {"id":58,"name":"Kollaborative Intelligenz","category":"Meta-Konzept","level":null,"pagerank":0.15},
+                {"id":59,"name":"Spektrum-Logik","category":null,"level":null,"pagerank":0.2477941118726032},
+                {"id":60,"name":"Shared Initiative","category":null,"level":null,"pagerank":0.2477941118726032},
+                {"id":61,"name":"Vollständige Entscheidungskontrolle","category":null,"level":null,"pagerank":0.21375},
+                {"id":62,"name":"Entscheidungskontrolle","category":null,"level":null,"pagerank":0.19692107024349478},
+                {"id":63,"name":"Menschliche Kontrolle","category":null,"level":null,"pagerank":0.21375},
+                {"id":64,"name":"Eignung des KI-Typs","category":null,"level":null,"pagerank":0.1925},
+                {"id":65,"name":"Lernen","category":"Outcome","level":null,"pagerank":0.19692107024349478},
+                {"id":66,"name":"Innovation","category":"Outcome","level":null,"pagerank":0.19692107024349478},
+                {"id":67,"name":"Erklärbarkeit","category":null,"level":null,"pagerank":0.15},
+                {"id":68,"name":"Algorithm Appreciation","category":null,"level":null,"pagerank":0.17132660557090043},
+                {"id":69,"name":"Algorithm Aversion","category":null,"level":null,"pagerank":0.17132660557090043},
+                {"id":70,"name":"Vertrauensfehlkalibrierung","category":null,"level":null,"pagerank":0.4412552294705307},
+                {"id":71,"name":"Wissensteilung","category":null,"level":null,"pagerank":0.23779048792751512},
+                {"id":72,"name":"AAI-Failure","category":null,"level":null,"pagerank":0.27600671992195375},
+                {"id":73,"name":"Auswirkungen algorithmischer Verzerrung","category":null,"level":null,"pagerank":0.17563094147383887},
+                {"id":74,"name":"Nutzungsabsicht","category":null,"level":null,"pagerank":0.3004639817384368},
+                {"id":75,"name":"Exploration von KI","category":null,"level":null,"pagerank":0.18016473781976972},
+                {"id":76,"name":"Resilienz","category":null,"level":null,"pagerank":0.18016473781976972},
+                {"id":77,"name":"Geringer Technostress","category":null,"level":null,"pagerank":0.15},
+                {"id":78,"name":"Kommunikationskultur","category":"Faktor_organisational","level":"Meso","pagerank":0.15},
+                {"id":79,"name":"Führungskultur","category":"Faktor_organisational","level":"Meso","pagerank":0.15},
+                {"id":80,"name":"Transparenzkultur","category":"Faktor_organisational","level":"Meso","pagerank":0.15},
+                {"id":81,"name":"Psychologische Sicherheit","category":"Faktor_organisational","level":"Meso","pagerank":0.32891473781976976},
+                {"id":82,"name":"Lernkultur","category":"Faktor_organisational","level":"Meso","pagerank":0.15},
+                {"id":83,"name":"Erfolg von Adaptive Augmented Intelligence","category":"Outcome","level":null,"pagerank":1.6723953622733734},
+                {"id":84,"name":"AAI-Readiness (Organisation/Individuen)","category":"Outcome","level":null,"pagerank":0.33215482554629144},
+                {"id":85,"name":"Performance / Leistung","category":"Outcome","level":null,"pagerank":0.3031710702434948},
+                {"id":86,"name":"Produktivität","category":"Outcome","level":null,"pagerank":0.3229277901654484},
+                {"id":87,"name":"Wohlbefinden","category":"Outcome","level":null,"pagerank":0.38235786011935713},
+                {"id":88,"name":"Arbeitszufriedenheit","category":"Outcome","level":null,"pagerank":0.27600671992195375},
+                {"id":89,"name":"Vertrauen in KI","category":"Outcome","level":null,"pagerank":0.44696185387109155},
+                {"id":90,"name":"OECD KI-Prinzipien","category":"Regulatorischer Rahmen","level":null,"pagerank":0.15},
+                {"id":91,"name":"EU AI Act","category":"Rechtlicher Rahmen","level":null,"pagerank":0.15},
+                {"id":92,"name":"UNESCO KI-Ethik","category":"Normativer Rahmen","level":null,"pagerank":0.15},
+                {"id":93,"name":"Gesellschaftliche Erwartungen an KI","category":"Kontext","level":null,"pagerank":0.15},
+                {"id":94,"name":"Öffentliche Wahrnehmung von KI","category":"Kontext","level":null,"pagerank":0.45334375},
+                {"id":95,"name":"Regulatorischer Druck","category":null,"level":null,"pagerank":0.21375},
+                {"id":96,"name":"Ökonomische Vorteile","category":null,"level":null,"pagerank":0.1925},
+                {"id":97,"name":"Governance- und Alignment-Risiken","category":null,"level":null,"pagerank":0.1925}
+            ],
+            links: [
+                {"source":55,"target":34,"type":"INFLUENCES","direction":"positive"},
+                {"source":55,"target":64,"type":"INFLUENCES","direction":"positive"},
+                {"source":55,"target":85,"type":"INFLUENCES","direction":"positive"},
+                {"source":34,"target":56,"type":"PART_OF","direction":null},
+                {"source":56,"target":34,"type":"EXPLAINS","direction":null},
+                {"source":34,"target":57,"type":"PART_OF","direction":null},
+                {"source":57,"target":34,"type":"EXPLAINS","direction":null},
+                {"source":0,"target":1,"type":"IS_TYPE_OF","direction":null},
+                {"source":0,"target":2,"type":"IS_TYPE_OF","direction":null},
+                {"source":0,"target":3,"type":"IS_TYPE_OF","direction":null},
+                {"source":0,"target":9,"type":"LOCATED_AT_LEVEL","direction":null},
+                {"source":6,"target":2,"type":"TARGETS","direction":null},
+                {"source":3,"target":94,"type":"INFLUENCES","direction":"positive"},
+                {"source":4,"target":94,"type":"INFLUENCES","direction":"ambivalent"},
+                {"source":4,"target":96,"type":"FOCUSES_ON","direction":"positive"},
+                {"source":4,"target":9,"type":"LOCATED_AT_LEVEL","direction":null},
+                {"source":5,"target":94,"type":"INFLUENCES","direction":"ambivalent"},
+                {"source":5,"target":97,"type":"FOCUSES_ON","direction":"positive"},
+                {"source":5,"target":9,"type":"LOCATED_AT_LEVEL","direction":null},
+                {"source":6,"target":9,"type":"LOCATED_AT_LEVEL","direction":null},
+                {"source":6,"target":8,"type":"EXACERBATES","direction":"positive"},
+                {"source":6,"target":10,"type":"EXACERBATES","direction":"positive"},
+                {"source":6,"target":11,"type":"INCREASES","direction":"positive"},
+                {"source":11,"target":7,"type":"LEADS_TO","direction":"positive"},
+                {"source":9,"target":12,"type":"INFLUENCES","direction":"positive"},
+                {"source":9,"target":13,"type":"INFLUENCES","direction":"ambivalent"},
+                {"source":90,"target":9,"type":"LOCATED_AT_LEVEL","direction":null},
+                {"source":91,"target":9,"type":"LOCATED_AT_LEVEL","direction":null},
+                {"source":92,"target":9,"type":"LOCATED_AT_LEVEL","direction":null},
+                {"source":53,"target":9,"type":"RELATES_TO","direction":null},
+                {"source":9,"target":13,"type":"CONSTRAINS","direction":"ambivalent"},
+                {"source":9,"target":53,"type":"CONSTRAINS","direction":"ambivalent"},
+                {"source":14,"target":13,"type":"LOCATED_AT_LEVEL","direction":null},
+                {"source":20,"target":13,"type":"LOCATED_AT_LEVEL","direction":null},
+                {"source":53,"target":13,"type":"LOCATED_AT_LEVEL","direction":null},
+                {"source":78,"target":13,"type":"LOCATED_AT_LEVEL","direction":null},
+                {"source":79,"target":13,"type":"LOCATED_AT_LEVEL","direction":null},
+                {"source":80,"target":13,"type":"LOCATED_AT_LEVEL","direction":null},
+                {"source":81,"target":13,"type":"LOCATED_AT_LEVEL","direction":null},
+                {"source":82,"target":13,"type":"LOCATED_AT_LEVEL","direction":null},
+                {"source":14,"target":13,"type":"PART_OF","direction":null},
+                {"source":43,"target":13,"type":"PART_OF","direction":null},
+                {"source":17,"target":14,"type":"EXACERBATES","direction":"positive"},
+                {"source":15,"target":14,"type":"PART_OF","direction":null},
+                {"source":14,"target":18,"type":"CAUSES","direction":"positive"},
+                {"source":14,"target":19,"type":"CAUSES","direction":"positive"},
+                {"source":20,"target":14,"type":"ADDRESSES","direction":"positive"},
+                {"source":49,"target":14,"type":"ADDRESSES","direction":"positive"},
+                {"source":21,"target":14,"type":"MITIGATES","direction":"positive"},
+                {"source":22,"target":14,"type":"MITIGATES","direction":"positive"},
+                {"source":16,"target":15,"type":"EXPLAINS","direction":null},
+                {"source":49,"target":18,"type":"ADDRESSES","direction":"positive"},
+                {"source":20,"target":18,"type":"MITIGATES","direction":"positive"},
+                {"source":24,"target":18,"type":"MITIGATES","direction":"positive"},
+                {"source":20,"target":19,"type":"MITIGATES","direction":"positive"},
+                {"source":20,"target":19,"type":"MITIGATES","direction":"positive"},
+                {"source":20,"target":84,"type":"INFLUENCES","direction":"positive"},
+                {"source":20,"target":89,"type":"INFLUENCES","direction":"positive"},
+                {"source":95,"target":20,"type":"INFLUENCES","direction":"positive"},
+                {"source":20,"target":53,"type":"PART_OF","direction":null},
+                {"source":21,"target":20,"type":"PART_OF","direction":null},
+                {"source":22,"target":20,"type":"PART_OF","direction":null},
+                {"source":23,"target":20,"type":"PART_OF","direction":null},
+                {"source":24,"target":20,"type":"PART_OF","direction":null},
+                {"source":20,"target":28,"type":"MITIGATES","direction":"positive"},
+                {"source":53,"target":20,"type":"USES","direction":null},
+                {"source":20,"target":83,"type":"IS_SUCCESS_FACTOR_FOR","direction":"positive"},
+                {"source":22,"target":53,"type":"PART_OF","direction":null},
+                {"source":53,"target":22,"type":"USES","direction":null},
+                {"source":23,"target":25,"type":"MITIGATES","direction":"positive"},
+                {"source":27,"target":26,"type":"LOCATED_AT_LEVEL","direction":null},
+                {"source":28,"target":26,"type":"LOCATED_AT_LEVEL","direction":null},
+                {"source":30,"target":26,"type":"LOCATED_AT_LEVEL","direction":null},
+                {"source":30,"target":28,"type":"INFLUENCES","direction":"negative"},
+                {"source":29,"target":28,"type":"EXPLAINS","direction":null},
+                {"source":49,"target":28,"type":"ADDRESSES","direction":"positive"},
+                {"source":32,"target":28,"type":"MITIGATES","direction":"positive"},
+                {"source":28,"target":41,"type":"IS_RISK_FACTOR_FOR","direction":"negative"},
+                {"source":28,"target":87,"type":"IS_RISK_FACTOR_FOR","direction":"negative"},
+                {"source":28,"target":89,"type":"IS_RISK_FACTOR_FOR","direction":"negative"},
+                {"source":32,"target":31,"type":"MITIGATES","direction":"positive"},
+                {"source":33,"target":31,"type":"MITIGATES","direction":"positive"},
+                {"source":32,"target":33,"type":"INFLUENCES","direction":"positive"},
+                {"source":32,"target":34,"type":"INFLUENCES","direction":"positive"},
+                {"source":32,"target":89,"type":"INFLUENCES","direction":"positive"},
+                {"source":81,"target":32,"type":"INFLUENCES","direction":"positive"},
+                {"source":82,"target":32,"type":"INFLUENCES","direction":"positive"},
+                {"source":32,"target":73,"type":"MITIGATES","direction":"positive"},
+                {"source":43,"target":32,"type":"ENABLE","direction":"positive"},
+                {"source":32,"target":83,"type":"IS_SUCCESS_FACTOR_FOR","direction":"positive"},
+                {"source":32,"target":84,"type":"IS_SUCCESS_FACTOR_FOR","direction":"positive"},
+                {"source":32,"target":40,"type":"ENABLED_BY","direction":"ambivalent"},
+                {"source":32,"target":40,"type":"ENABLES","direction":"positive"},
+                {"source":33,"target":42,"type":"INFLUENCES","direction":"positive"},
+                {"source":33,"target":42,"type":"INFLUENCES","direction":"positive"},
+                {"source":33,"target":68,"type":"MITIGATES","direction":"positive"},
+                {"source":33,"target":69,"type":"MITIGATES","direction":"positive"},
+                {"source":33,"target":83,"type":"IS_SUCCESS_FACTOR_FOR","direction":"positive"},
+                {"source":33,"target":40,"type":"ENABLES","direction":"positive"},
+                {"source":34,"target":74,"type":"INFLUENCES","direction":"positive"},
+                {"source":35,"target":34,"type":"INFLUENCES","direction":"positive"},
+                {"source":37,"target":34,"type":"IS_RISK_FACTOR_FOR","direction":"negative"},
+                {"source":34,"target":83,"type":"IS_SUCCESS_FACTOR_FOR","direction":"positive"},
+                {"source":34,"target":40,"type":"ENABLED_BY","direction":"ambivalent"},
+                {"source":35,"target":75,"type":"INFLUENCES","direction":"positive"},
+                {"source":35,"target":76,"type":"INFLUENCES","direction":"positive"},
+                {"source":35,"target":81,"type":"INFLUENCES","direction":"positive"},
+                {"source":36,"target":35,"type":"INFLUENCES","direction":"positive"},
+                {"source":81,"target":35,"type":"INFLUENCES","direction":"positive"},
+                {"source":35,"target":83,"type":"IS_SUCCESS_FACTOR_FOR","direction":"positive"},
+                {"source":35,"target":40,"type":"ENABLED_BY","direction":"ambivalent"},
+                {"source":35,"target":40,"type":"ENABLES","direction":"positive"},
+                {"source":36,"target":83,"type":"INFLUENCES","direction":"positive"},
+                {"source":36,"target":49,"type":"PART_OF","direction":null},
+                {"source":37,"target":72,"type":"EXACERBATES","direction":"positive"},
+                {"source":44,"target":37,"type":"PART_OF","direction":null},
+                {"source":45,"target":37,"type":"PART_OF","direction":null},
+                {"source":46,"target":37,"type":"PART_OF","direction":null},
+                {"source":47,"target":37,"type":"PART_OF","direction":null},
+                {"source":48,"target":37,"type":"PART_OF","direction":null},
+                {"source":49,"target":37,"type":"ADDRESSES","direction":"positive"},
+                {"source":37,"target":83,"type":"IS_RISK_FACTOR_FOR","direction":"negative"},
+                {"source":37,"target":86,"type":"IS_RISK_FACTOR_FOR","direction":"negative"},
+                {"source":37,"target":87,"type":"IS_RISK_FACTOR_FOR","direction":"negative"},
+                {"source":37,"target":88,"type":"IS_RISK_FACTOR_FOR","direction":"negative"},
+                {"source":38,"target":81,"type":"INFLUENCES","direction":"negative"},
+                {"source":38,"target":46,"type":"PART_OF","direction":null},
+                {"source":38,"target":71,"type":"IS_RISK_FACTOR_FOR","direction":"negative"},
+                {"source":38,"target":81,"type":"IS_RISK_FACTOR_FOR","direction":"negative"},
+                {"source":39,"target":41,"type":"IS_RISK_FACTOR_FOR","direction":"negative"},
+                {"source":39,"target":83,"type":"IS_RISK_FACTOR_FOR","direction":"negative"},
+                {"source":82,"target":40,"type":"INFLUENCES","direction":"positive"},
+                {"source":40,"target":53,"type":"PART_OF","direction":null},
+                {"source":40,"target":83,"type":"IS_SUCCESS_FACTOR_FOR","direction":"positive"},
+                {"source":77,"target":40,"type":"ENABLES","direction":"positive"},
+                {"source":53,"target":49,"type":"PART_OF","direction":null},
+                {"source":49,"target":50,"type":"IS_FRAMEWORK_FOR","direction":null},
+                {"source":90,"target":49,"type":"IS_FRAMEWORK_FOR","direction":null},
+                {"source":92,"target":49,"type":"IS_FRAMEWORK_FOR","direction":null},
+                {"source":49,"target":53,"type":"EMBEDS","direction":null},
+                {"source":50,"target":49,"type":"DERIVES_FROM","direction":null},
+                {"source":91,"target":49,"type":"OPERATIONALIZES","direction":null},
+                {"source":50,"target":65,"type":"INFLUENCES","direction":"positive"},
+                {"source":50,"target":66,"type":"INFLUENCES","direction":"positive"},
+                {"source":50,"target":85,"type":"INFLUENCES","direction":"positive"},
+                {"source":50,"target":86,"type":"INFLUENCES","direction":"positive"},
+                {"source":50,"target":54,"type":"PART_OF","direction":null},
+                {"source":58,"target":50,"type":"PART_OF","direction":null},
+                {"source":53,"target":50,"type":"DERIVES_FROM","direction":null},
+                {"source":50,"target":62,"type":"SHARES","direction":"ambivalent"},
+                {"source":51,"target":54,"type":"PART_OF","direction":null},
+                {"source":51,"target":61,"type":"KEEPS","direction":"positive"},
+                {"source":52,"target":54,"type":"PART_OF","direction":null},
+                {"source":52,"target":63,"type":"REDUCES","direction":"negative"},
+                {"source":53,"target":83,"type":"INFLUENCES","direction":"positive"},
+                {"source":53,"target":84,"type":"INFLUENCES","direction":"positive"},
+                {"source":59,"target":53,"type":"PART_OF","direction":null},
+                {"source":60,"target":53,"type":"PART_OF","direction":null},
+                {"source":53,"target":59,"type":"USES","direction":null},
+                {"source":53,"target":60,"type":"USES","direction":null},
+                {"source":58,"target":83,"type":"INFLUENCES","direction":"positive"},
+                {"source":67,"target":85,"type":"INFLUENCES","direction":"ambivalent"},
+                {"source":67,"target":89,"type":"INFLUENCES","direction":"ambivalent"},
+                {"source":68,"target":70,"type":"IS_TYPE_OF","direction":null},
+                {"source":69,"target":70,"type":"IS_TYPE_OF","direction":null},
+                {"source":70,"target":83,"type":"IS_RISK_FACTOR_FOR","direction":"negative"},
+                {"source":81,"target":71,"type":"INFLUENCES","direction":"positive"},
+                {"source":78,"target":81,"type":"INFLUENCES","direction":"positive"},
+                {"source":78,"target":83,"type":"IS_SUCCESS_FACTOR_FOR","direction":"positive"},
+                {"source":79,"target":81,"type":"INFLUENCES","direction":"positive"},
+                {"source":79,"target":83,"type":"IS_SUCCESS_FACTOR_FOR","direction":"positive"},
+                {"source":80,"target":89,"type":"INFLUENCES","direction":"positive"},
+                {"source":80,"target":83,"type":"IS_SUCCESS_FACTOR_FOR","direction":"positive"},
+                {"source":81,"target":83,"type":"IS_SUCCESS_FACTOR_FOR","direction":"positive"},
+                {"source":82,"target":83,"type":"IS_SUCCESS_FACTOR_FOR","direction":"positive"},
+                {"source":93,"target":94,"type":"INFLUENCES","direction":"positive"},
+                {"source":93,"target":95,"type":"INFLUENCES","direction":"positive"}
+            ]
+        };
+        
+        // ========================================
+        // KONFIGURATION
+        // ========================================
+        
+        // IDs die Magenta hervorgehoben werden sollen (Schlüsselfaktoren)
+        const HIGHLIGHT_IDS = new Set([20, 32, 33, 34, 35, 37, 40, 81]);
+        
+        // Farben
+        const COLOR_CYAN = '#00ffff';
+        const COLOR_MAGENTA = '#ff00ff';
+        const COLOR_CYAN_DIM = 'rgba(0, 255, 255, 0.15)';
+        const COLOR_MAGENTA_DIM = 'rgba(255, 0, 255, 0.15)';
+        
+        let config = {
+            nodeSizeMultiplier: 1.0,
+            particleSpeed: 1.0,
+            physicsStrength: -120,
+            linkDistance: 60,
+            autoRotate: true,
+            showLabels: true,
+            showParticles: true,
+            highlightMode: true
+        };
+        
+        // ========================================
+        // HILFSFUNKTIONEN
+        // ========================================
+        
+        function isHighlightNode(node) {
+            return HIGHLIGHT_IDS.has(node.id);
+        }
+        
+        function getNodeColor(node) {
+            return isHighlightNode(node) ? COLOR_MAGENTA : COLOR_CYAN;
+        }
+        
+        function getNodeSize(node) {
+            // VERSTÄRKTE Größenunterschiede (Faktor 2.5x)
+            const minSize = 1.5;      // Kleinste Knoten
+            const maxSize = 25;       // Größte Knoten (war 12, jetzt 25)
+            const normalized = (node.pagerank - 0.15) / (1.67 - 0.15);
+            // Exponentieller Faktor für noch stärkere Unterschiede
+            const exponential = Math.pow(normalized, 0.7);
+            return (minSize + exponential * (maxSize - minSize)) * config.nodeSizeMultiplier;
+        }
+        
+        // Verbindungen berechnen
+        function calculateConnections() {
+            const connections = {};
+            graphData.nodes.forEach(node => {
+                connections[node.id] = { in: 0, out: 0, neighbors: new Set() };
+            });
+            
+            graphData.links.forEach(link => {
+                const sourceId = typeof link.source === 'object' ? link.source.id : link.source;
+                const targetId = typeof link.target === 'object' ? link.target.id : link.target;
+                
+                if (connections[sourceId] && connections[targetId]) {
+                    connections[sourceId].out++;
+                    connections[targetId].in++;
+                    connections[sourceId].neighbors.add(targetId);
+                    connections[targetId].neighbors.add(sourceId);
+                }
+            });
+            
+            return connections;
+        }
+        
+        const nodeConnections = calculateConnections();
+        
+        // ========================================
+        // GRAPH VARIABLEN
+        // ========================================
+        let Graph = null;
+        let highlightNodes = new Set();
+        let highlightLinks = new Set();
+        let rotationAngle = 0;
+        let currentZoom = 350; // Speichert den aktuellen Zoom-Level
+        const animatedNodes = [];
+        
+        // ========================================
+        // ENERGIE-KONSTRUKT ERSTELLEN (Hologramm-Style, 3D-Ecken in Node-Farbe)
+        // ========================================
+        function createEnergySphere(node) {
+            const size = getNodeSize(node);
+            // Hier wird die Farbe (Cyan oder Magenta) bestimmt
+            const color = new THREE.Color(getNodeColor(node));
+            const isHighlight = isHighlightNode(node);
+            
+            // Container
+            const group = new THREE.Group();
+            
+            // Basis-Geometrie: Ikosaeder
+            const geometry = new THREE.IcosahedronGeometry(size, 1);
+            
+            // 1. Der Gitter-Käfig (Wireframe)
+            const wireMaterial = new THREE.MeshBasicMaterial({
+                color: color,
+                wireframe: true,
+                transparent: true,
+                opacity: isHighlight ? 0.8 : 0.35,
+                blending: THREE.AdditiveBlending
+            });
+            const wireframe = new THREE.Mesh(geometry, wireMaterial);
+            group.add(wireframe);
+            
+            // 2. Echte 3D-Kugeln an den Ecken
+            const positions = geometry.attributes.position.array;
+            
+            // Material für die kleinen Eck-Kugeln
+            // JETZT IN DER GLEICHEN FARBE WIE DER KNOTEN
+            const sphereMaterial = new THREE.MeshBasicMaterial({
+                color: color, // <--- HIER GEÄNDERT: Nutzt jetzt Cyan/Magenta statt Weiß
+                transparent: true,
+                opacity: isHighlight ? 1.0 : 0.8, // Hohe Deckkraft für intensives Leuchten
+                blending: THREE.AdditiveBlending
+            });
+
+            // Geometrie für eine kleine Eck-Kugel
+            const sphereGeometry = new THREE.SphereGeometry(size * 0.05, 8, 8);
+
+            // Wir gehen durch alle Vertices
+            for (let i = 0; i < positions.length; i += 3) {
+                const x = positions[i];
+                const y = positions[i + 1];
+                const z = positions[i + 2];
+
+                const smallSphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+                smallSphere.position.set(x, y, z);
+                group.add(smallSphere);
+            }
+            
+            // 3. Inneres Energiefeld (Glow)
+            const coreMaterial = new THREE.MeshBasicMaterial({
+                color: color,
+                transparent: true,
+                opacity: isHighlight ? 0.25 : 0.1,
+                blending: THREE.AdditiveBlending,
+                side: THREE.BackSide
+            });
+            const core = new THREE.Mesh(geometry, coreMaterial);
+            core.scale.set(0.85, 0.85, 0.85);
+            group.add(core);
+            
+            // Objekt zur Animations-Liste hinzufügen
+            group.userData = { 
+                isAnimated: true, 
+                rotateSpeed: 0.002 + Math.random() * 0.002,
+                rotateAxis: new THREE.Vector3(Math.random(), Math.random(), Math.random()).normalize()
+            };
+            
+            animatedNodes.push(group);
+            
+            return group;
+        }
+        
+        // ========================================
+        // GRAPH INITIALISIERUNG
+        // ========================================
+        function initGraph() {
+            console.log('Initialisiere Graph...');
+            
+            if (typeof ForceGraph3D === 'undefined') {
+                throw new Error('ForceGraph3D ist nicht geladen');
+            }
+            if (typeof THREE === 'undefined') {
+                throw new Error('THREE.js ist nicht geladen');
+            }
+            
+            console.log('Alle Bibliotheken geladen ✓');
+            
+            const container = document.getElementById('graph-container');
+            
+            Graph = ForceGraph3D()(container)
+                .graphData(graphData)
+                .backgroundColor('#000008')
+                .showNavInfo(false)
+                .enableNodeDrag(true)
+                .enableNavigationControls(true)
+                
+                // Knoten als Custom Three.js Objekte (Energie-Sphären)
+                .nodeThreeObject(node => {
+                    const sphere = createEnergySphere(node);
+                    
+                    // Label hinzufügen wenn aktiviert
+                    if (config.showLabels && node.pagerank >= 0.3) {
+                        const sprite = new THREE.Sprite(
+                            new THREE.SpriteMaterial({
+                                map: createTextTexture(node.name, getNodeColor(node)),
+                                transparent: true,
+                                depthWrite: false
+                            })
+                        );
+                        const size = getNodeSize(node);
+                        sprite.scale.set(40, 20, 1);
+                        sprite.position.y = size * 1.8;
+                        sphere.add(sprite);
+                    }
+                    
+                    return sphere;
+                })
+                .nodeThreeObjectExtend(false)
+                
+                // Tooltip
+                .nodeLabel(node => `${node.name}\nPageRank: ${node.pagerank.toFixed(3)}`)
+                
+                // Link-Konfiguration
+                .linkColor(link => {
+                    if (config.highlightMode && highlightLinks.size > 0) {
+                        return highlightLinks.has(link) ? 'rgba(0, 255, 255, 0.8)' : 'rgba(30,30,30,0.1)';
+                    }
+                    if (link.direction === 'positive') return 'rgba(0, 255, 200, 0.3)';
+                    if (link.direction === 'negative') return 'rgba(255, 100, 100, 0.3)';
+                    return 'rgba(0, 200, 200, 0.25)';
+                })
+                .linkWidth(link => {
+                    if (config.highlightMode && highlightLinks.size > 0) {
+                        return highlightLinks.has(link) ? 1.5 : 0.1;
+                    }
+                    return 0.4;
+                })
+                .linkOpacity(0.6)
+                .linkDirectionalArrowLength(2.5)
+                .linkDirectionalArrowRelPos(1)
+                .linkDirectionalArrowColor(link => {
+                    if (config.highlightMode && highlightLinks.size > 0) {
+                        return highlightLinks.has(link) ? 'rgba(0, 255, 255, 1)' : 'rgba(30,30,30,0.15)';
+                    }
+                    return 'rgba(0, 200, 200, 0.5)';
+                })
+                
+                // Partikel
+                .linkDirectionalParticles(link => config.showParticles ? 2 : 0)
+                .linkDirectionalParticleWidth(1.2)
+                .linkDirectionalParticleSpeed(0.004 * config.particleSpeed)
+                .linkDirectionalParticleColor(() => COLOR_CYAN)
+                
+                // Events
+                .onNodeHover(node => {
+                    container.style.cursor = node ? 'pointer' : 'default';
+                    
+                    if (config.highlightMode) {
+                        highlightNodes.clear();
+                        highlightLinks.clear();
+                        
+                        if (node) {
+                            highlightNodes.add(node);
+                            
+                            graphData.links.forEach(link => {
+                                const sourceId = typeof link.source === 'object' ? link.source.id : link.source;
+                                const targetId = typeof link.target === 'object' ? link.target.id : link.target;
+                                
+                                if (sourceId === node.id || targetId === node.id) {
+                                    highlightLinks.add(link);
+                                    const connectedNode = graphData.nodes.find(n => 
+                                        n.id === (sourceId === node.id ? targetId : sourceId)
+                                    );
+                                    if (connectedNode) highlightNodes.add(connectedNode);
+                                }
+                            });
+                        }
+                        
+                        updateGraphAppearance();
+                    }
+                })
+                .onNodeClick(node => {
+                    showNodeInfo(node);
+                    
+                    // Kamera zum Knoten bewegen
+                    const distance = 100;
+                    const distRatio = 1 + distance / Math.hypot(node.x || 0, node.y || 0, node.z || 0);
+                    Graph.cameraPosition(
+                        { 
+                            x: (node.x || 0) * distRatio, 
+                            y: (node.y || 0) * distRatio, 
+                            z: (node.z || 0) * distRatio 
+                        },
+                        node,
+                        1500
+                    );
+                });
+            
+            // Force-Engine konfigurieren
+            Graph.d3Force('charge').strength(config.physicsStrength);
+            Graph.d3Force('link').distance(config.linkDistance);
+            
+            // Initiale Kamera-Position
+            setTimeout(() => {
+                Graph.cameraPosition({ x: 0, y: 0, z: currentZoom });
+            }, 100);
+            
+            // Auto-Rotation mit Zoom-Unterstützung starten
+            startAutoRotation();
+            
+            // Maus-Events für Auto-Rotation-Stopp
+            setupMouseEvents();
+            
+            // Zoom-Events abfangen
+            setupZoomEvents();
+            
+            // Loading ausblenden
+            document.getElementById('loading').classList.add('hidden');
+            
+            // Hint kurz anzeigen
+            const hint = document.getElementById('rotation-hint');
+            hint.classList.add('visible');
+            setTimeout(() => hint.classList.remove('visible'), 5000);
+            
+            console.log('Graph erfolgreich initialisiert!');
+        }
+        
+        // Text-Textur für Labels
+        function createTextTexture(text, color) {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = 512;
+            canvas.height = 128;
+            
+            ctx.fillStyle = 'rgba(0,0,0,0)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.font = 'bold 28px Arial, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            let displayText = text;
+            if (text.length > 35) {
+                displayText = text.substring(0, 32) + '...';
+            }
+            
+            ctx.shadowColor = color;
+            ctx.shadowBlur = 12;
+            ctx.fillStyle = color;
+            ctx.fillText(displayText, canvas.width / 2, canvas.height / 2);
+            
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.needsUpdate = true;
+            return texture;
+        }
+        
+        // Graph-Erscheinungsbild aktualisieren
+        function updateGraphAppearance() {
+            if (Graph) {
+                Graph.linkColor(Graph.linkColor());
+                Graph.linkWidth(Graph.linkWidth());
+                Graph.linkDirectionalArrowColor(Graph.linkDirectionalArrowColor());
+            }
+        }
+        
+        // ========================================
+        // AUTO-ROTATION MIT ZOOM-UNTERSTÜTZUNG (MIT NODES-ANIMATION)
+        // ========================================
+        function startAutoRotation() {
+            function animate() {
+                // 1. Globale Kamera-Rotation (wie bisher)
+                if (config.autoRotate && Graph) {
+                    rotationAngle += 0.0008;
+                    Graph.cameraPosition({
+                        x: currentZoom * Math.sin(rotationAngle),
+                        y: 50,
+                        z: currentZoom * Math.cos(rotationAngle)
+                    });
+                }
+                
+                // 2. NEU: Individuelle Knoten-Rotation (Hologramm-Effekt)
+                // Hier greifen wir auf die Variable 'animatedNodes' zu, die wir in Schritt 1 erstellt haben
+                if (typeof animatedNodes !== 'undefined') {
+                    animatedNodes.forEach(node => {
+                        if (node.userData && node.userData.isAnimated) {
+                            // Rotiert das Objekt um seine eigene Achse
+                            node.rotateOnAxis(node.userData.rotateAxis, node.userData.rotateSpeed);
+                        }
+                    });
+                }
+
+                // Loop
+                requestAnimationFrame(animate);
+            }
+            // Startet die Schleife
+            animate();
+        }
+        
+        // ========================================
+        // MAUS-EVENTS FÜR AUTO-ROTATION-STOPP
+        // ========================================
+        function setupMouseEvents() {
+            const container = document.getElementById('graph-container');
+            
+            // Stoppe Auto-Rotation bei Mausklick (links oder rechts)
+            container.addEventListener('mousedown', function(e) {
+                // Nur wenn nicht auf UI-Elemente geklickt wird
+                if (e.target === container || e.target.tagName === 'CANVAS') {
+                    if (config.autoRotate) {
+                        config.autoRotate = false;
+                        document.getElementById('auto-rotate').checked = false;
+                        
+                        // Visuelles Feedback
+                        const hint = document.getElementById('rotation-hint');
+                        hint.textContent = 'Auto-Rotation deaktiviert';
+                        hint.classList.add('visible');
+                        setTimeout(() => {
+                            hint.classList.remove('visible');
+                            hint.textContent = 'Klicken Sie irgendwo, um manuell zu steuern';
+                        }, 2000);
+                    }
+                }
+            });
+        }
+        
+        // ========================================
+        // ZOOM-EVENTS
+        // ========================================
+        function setupZoomEvents() {
+            const container = document.getElementById('graph-container');
+            
+            // Mausrad-Zoom aktualisiert currentZoom
+            container.addEventListener('wheel', function(e) {
+                // Zoom-Faktor anpassen
+                const zoomSpeed = 0.1;
+                if (e.deltaY > 0) {
+                    currentZoom = Math.min(currentZoom * (1 + zoomSpeed), 800);
+                } else {
+                    currentZoom = Math.max(currentZoom * (1 - zoomSpeed), 100);
+                }
+            });
+        }
+        
+        // ========================================
+        // UI FUNKTIONEN
+        // ========================================
+        function showNodeInfo(node) {
+            const panel = document.getElementById('info-panel');
+            const conn = nodeConnections[node.id];
+            
+            document.getElementById('info-name').textContent = node.name;
+            document.getElementById('info-pagerank').textContent = node.pagerank.toFixed(4);
+            document.getElementById('info-category').textContent = node.category || 'Keine Kategorie';
+            document.getElementById('info-level').textContent = node.level || 'Übergreifend';
+            document.getElementById('info-connections').textContent = 
+                `${conn ? conn.in : 0} eingehend, ${conn ? conn.out : 0} ausgehend`;
+            
+            // Farbe des Titels anpassen
+            const titleEl = document.getElementById('info-name');
+            titleEl.style.color = isHighlightNode(node) ? COLOR_MAGENTA : COLOR_CYAN;
+            titleEl.style.textShadow = `0 0 10px ${isHighlightNode(node) ? 'rgba(255,0,255,0.5)' : 'rgba(0,255,255,0.5)'}`;
+            
+            panel.classList.add('active');
+            document.getElementById('fullscreen-btn').classList.add('shifted');
+        }
+        
+        function closeInfoPanel() {
+            document.getElementById('info-panel').classList.remove('active');
+            document.getElementById('fullscreen-btn').classList.remove('shifted');
+        }
+        
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.log('Vollbild nicht möglich:', err);
+                });
+            } else {
+                document.exitFullscreen();
+            }
+        }
+        
+        // ========================================
+        // STEUERELEMENTE
+        // ========================================
+        function setupControls() {
+            // Knoten-Größe
+            document.getElementById('node-size').addEventListener('input', function() {
+                config.nodeSizeMultiplier = parseFloat(this.value);
+                document.getElementById('size-value').textContent = this.value + 'x';
+                if (Graph) {
+                    Graph.nodeThreeObject(Graph.nodeThreeObject());
+                }
+            });
+            
+            // Partikel-Geschwindigkeit
+            document.getElementById('particle-speed').addEventListener('input', function() {
+                config.particleSpeed = parseFloat(this.value);
+                document.getElementById('particle-value').textContent = this.value + 'x';
+                if (Graph) {
+                    Graph.linkDirectionalParticleSpeed(0.004 * config.particleSpeed);
+                }
+            });
+            
+            // Physik-Stärke
+            document.getElementById('physics-strength').addEventListener('input', function() {
+                config.physicsStrength = parseFloat(this.value);
+                document.getElementById('physics-value').textContent = this.value;
+                if (Graph) {
+                    Graph.d3Force('charge').strength(config.physicsStrength);
+                    Graph.d3ReheatSimulation();
+                }
+            });
+            
+            // Link-Distanz
+            document.getElementById('link-distance').addEventListener('input', function() {
+                config.linkDistance = parseFloat(this.value);
+                document.getElementById('link-value').textContent = this.value;
+                if (Graph) {
+                    Graph.d3Force('link').distance(config.linkDistance);
+                    Graph.d3ReheatSimulation();
+                }
+            });
+            
+            // Auto-Rotation
+            document.getElementById('auto-rotate').addEventListener('change', function() {
+                config.autoRotate = this.checked;
+                if (this.checked) {
+                    // Bei Reaktivierung: Aktuellen Winkel aus Kameraposition berechnen
+                    const pos = Graph.cameraPosition();
+                    rotationAngle = Math.atan2(pos.x, pos.z);
+                    currentZoom = Math.sqrt(pos.x * pos.x + pos.z * pos.z);
+                }
+            });
+            
+            // Labels
+            document.getElementById('show-labels').addEventListener('change', function() {
+                config.showLabels = this.checked;
+                if (Graph) {
+                    Graph.nodeThreeObject(Graph.nodeThreeObject());
+                }
+            });
+            
+            // Partikel
+            document.getElementById('show-particles').addEventListener('change', function() {
+                config.showParticles = this.checked;
+                if (Graph) {
+                    Graph.linkDirectionalParticles(config.showParticles ? 2 : 0);
+                }
+            });
+            
+            // Highlight-Modus
+            document.getElementById('highlight-mode').addEventListener('change', function() {
+                config.highlightMode = this.checked;
+                highlightNodes.clear();
+                highlightLinks.clear();
+                updateGraphAppearance();
+            });
+        }
+        
+        // ========================================
+        // INITIALISIERUNG
+        // ========================================
+        function showError(message) {
+            const errorEl = document.getElementById('error-msg');
+            errorEl.textContent = message;
+            errorEl.style.display = 'block';
+            document.querySelector('.loader').style.display = 'none';
+        }
+        
+        function waitForDependencies(callback, maxWait = 10000) {
+            const startTime = Date.now();
+            
+            function check() {
+                const elapsed = Date.now() - startTime;
+                
+                if (typeof ForceGraph3D !== 'undefined' && typeof THREE !== 'undefined') {
+                    console.log('Dependencies ready nach ' + elapsed + 'ms');
+                    callback();
+                } else if (elapsed > maxWait) {
+                    let missing = [];
+                    if (typeof ForceGraph3D === 'undefined') missing.push('ForceGraph3D');
+                    if (typeof THREE === 'undefined') missing.push('THREE');
+                    showError('Fehler: Bibliotheken konnten nicht geladen werden: ' + missing.join(', '));
+                } else {
+                    setTimeout(check, 100);
+                }
+            }
+            
+            check();
+        }
+        
+        // Start
+        window.addEventListener('load', function() {
+            console.log('Seite geladen, warte auf Bibliotheken...');
+            
+            waitForDependencies(function() {
+                try {
+                    setupControls();
+                    initGraph();
+                    
+                    document.getElementById('node-count').textContent = graphData.nodes.length;
+                    document.getElementById('link-count').textContent = graphData.links.length;
+                } catch (error) {
+                    console.error('Initialisierungsfehler:', error);
+                    showError('Fehler bei der Initialisierung: ' + error.message);
+                }
+            });
+        });
+        
+        // Fenstergrößenänderung
+        window.addEventListener('resize', function() {
+            if (Graph) {
+                Graph.width(window.innerWidth);
+                Graph.height(window.innerHeight);
+            }
+        });
+        
+        // Escape zum Schließen
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeInfoPanel();
+            }
+        });
+    </script>
+</body>
+</html>
